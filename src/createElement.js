@@ -1,12 +1,11 @@
 import { diff, commitRoot } from "./render"
 
-export function createElement(type, props, ...children) {
+export function createElement(type, props, children) {
     const normalizeProps = { children: [] }
     Object.keys(props || {}).forEach(key => {
         // 包括 ref 和 key
         normalizeProps[key] = props[key]
     })
-    children = Array.isArray(children) ? children : [children]
     normalizeProps.children = children
     return creatVNode(type, normalizeProps)
 }

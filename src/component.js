@@ -1,6 +1,6 @@
 import {diff,commitRoot} from './diff'
 export class Component {
-    constructor(props,context) {
+    constructor(props, context) {
         this.props = props
         this.context = context
     }
@@ -16,14 +16,14 @@ Component.prototype.setState = function (update, callback) {
     let updateState
     if (typeof update === 'function') {
         // 先不考虑props
-        updateState = update(this.state,this.props) // update 返回更新之后的值
-    }
-    if (update) {
+        updateState = update(this.state, this.props) // update 返回更新之后的值
+    }else if (update) {
         updateState = update
     }
     if (updateState) {
-        Object.assign(this.state || {}, updateState)
+        this.state = Object.assign(this.state || {}, updateState)
     }
+      console.log('state',updateState,this.state)
     if (!updateState) return
     if (this._vnode) {
         if (callback) this._renderCallbacks.push(callback);

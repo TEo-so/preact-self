@@ -14,23 +14,28 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
     // for hook
     try {
         if (typeof nodeType === 'function') {
+            const contextType = nodeType.contextType
+            const componentContext = contextType?._defaultValue
+            console.log('componentContext',componentContext)
             if (oldVNode?._component) {
                 component = newVNode._component = oldVNode._component
             } else {
                 if ('prototype' in nodeType && nodeType.prototype.render) {
                     // 自定义函数组件
-                    component = newVNode._component = new nodeType(newProps)
+                    component = newVNode._component = new nodeType(newProps,componentContext)
                     // 不需要更改原型也能更改到值，不懂为什么
                     // component._proto_ = Component.prototype
                 } else {
                     // fragment 
-                    component = newVNode._component = new Component(newProps)
+                    // console.log('nodeType', nodeType)
+                    component = newVNode._component = new Component(newProps,componentContext)
                     component.constructor = nodeType
                     component.render = doRender
                 }
                 isNew = true
                 component._renderCallbacks = []
             }
+            component.context = componentContext
             // 位置错了
             if (options._render) options._render(newVNode)
             // 第一次没有_nextState,赋值
@@ -110,7 +115,7 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
             // 更新state, 可能在lifeCycle中更改过
             component.state = component._nextState
             // 调用render 方法
-            renderResult = component.render(newProps)
+            renderResult = component.render(component.props,component.context)
             renderResult = renderResult ?
                 Array.isArray(renderResult) ? renderResult : [renderResult]
                 : []
@@ -270,6 +275,7 @@ export function diffElementNodes(dom, newVNode, oldVNode, commitQueue) {
         newVNode._dom = dom
         diffProps(dom, newProps, oldProps)
         let children = newVNode.props.children
+        children = Array.isArray(children) ? children : [children]
         diffChildren(dom, children, newVNode, oldVNode, commitQueue)
     }
     return dom
@@ -315,18 +321,33 @@ function setProperty(dom, name, value, oldValue) {
         }
     } else if (name[0] === 'o' && name[1] === 'n') {
         name = name.replace(/Capture$/, '')
-
         // Infer correct casing for DOM built-in events:
         if (name.toLowerCase() in dom) name = name.toLowerCase().slice(2);
         else name = name.slice(2);
-
-
         if (value) {
             if (!oldValue) {
                 dom.addEventListener(name, value);
             }
         } else {
             dom.removeEventListener(name, value);
+        }
+    } else if (name !== 'dangerouslySetInnerHTML') {
+        // 暂时没考虑 svg 以及 class 写法
+        if (
+			name !== 'href' &&
+			name !== 'list' &&
+			name !== 'form' &&
+			// Default value in browsers is `-1` and an empty string is
+			// cast to `0` instead
+			name !== 'tabIndex' &&
+            name !== 'download' &&
+            name in dom
+        ) {
+            console.log('setProperty',name,value == null)
+            try {
+                dom[name] = value == null ? '' : value;
+                return 
+			} catch (e) {}
         }
     }
 }
@@ -343,8 +364,8 @@ function setStyle(style, key, value) {
     }
 }
 
-function doRender(props) {
-    return this.constructor(props)
+function doRender(props,context) {
+    return this.constructor(props,context)
 }
 
 // 用来执行render之后的生命周期钩子

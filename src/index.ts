@@ -1,11 +1,14 @@
 import { render } from './render'
-import { createElement, Component, createRef } from './createElement'
+import { createElement, createRef } from './createElement'
+import { createContext } from './createContext'
+import { Component } from './component'
 
 const Preact = {
     render,
     createElement,
     Component,
-    createRef
+    createRef,
+    createContext
 }
 
 export default Preact

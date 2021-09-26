@@ -11,7 +11,6 @@ let oldCommit = options._commit
 options._render = (vnode) => {
     if (oldBeforeRender) oldBeforeRender()
     currentComponent = vnode._component
-    console.log('currentComponent',vnode,currentComponent)
     currentIndex = 0
     const hooks = currentComponent._hooks
     if (hooks) {
@@ -160,6 +159,11 @@ export function useCallback(callback, deps) {
     return useMemo(()=>callback,deps)
 }
 
+export function useContext(context) {
+    const hookState = getHookState(currentIndex++)
+    hookState._context = context
+    return context._defaultValue
+}
 //为什么 useErrorBoundary 不在react实现
 export function useErrorBoundary(cb) {
     const hookState = getHookState(currentIndex++)
