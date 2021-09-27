@@ -4,6 +4,13 @@ import React from "../src";
 // const element = <div>text</div>
 
 class Children extends React.Component {
+    shouldComponentUpdate(nextProps, nextState) {
+        console.log('比较', nextProps.name, this.props.name)
+        if (nextProps.name == this.props.name) {
+            return false
+        }
+    }
+
     render() {
         return (
             <div>

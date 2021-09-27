@@ -16,7 +16,6 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
         if (typeof nodeType === 'function') {
             const contextType = nodeType.contextType
             const componentContext = contextType?._defaultValue
-            console.log('componentContext',componentContext)
             if (oldVNode?._component) {
                 component = newVNode._component = oldVNode._component
             } else {
@@ -36,8 +35,6 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
                 component._renderCallbacks = []
             }
             component.context = componentContext
-            // 位置错了
-            if (options._render) options._render(newVNode)
             // 第一次没有_nextState,赋值
             // 之后更新，所以nextState就作为component上一次的state
             if (component._nextState == null) {
@@ -81,10 +78,13 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
                 // newVNode._original === oldVNode._original
                 // undefined === undefined
 
-                if ((!component._force &&
+                // component._force  之后加
+
+                if (
                     component.shouldComponentUpdate != null &&
                     component.shouldComponentUpdate(newProps, component._nextState) === false
-                )) {
+                ) {
+                    console.log('shouldComponent')
                     component.state = component._nextState
                     component.props = newProps
                     component._vnode = newVNode
@@ -99,6 +99,7 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
                     if (component._renderCallbacks.length) {
                         commitQueue.push(component);
                     }
+                    // 如果 SCU === false 就直接return了不用去render了
                     return
                 }
 
@@ -114,6 +115,7 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
             component._parentDom = parentDom
             // 更新state, 可能在lifeCycle中更改过
             component.state = component._nextState
+            if (options._render) options._render(newVNode)
             // 调用render 方法
             renderResult = component.render(component.props,component.context)
             renderResult = renderResult ?
@@ -140,10 +142,9 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
 function diffChildren(parentDom, renderResult, newParentVNode, oldParentVNode, commitQueue) {
     let oldChildren = (oldParentVNode && oldParentVNode._children) || EMPTY_ARR
     newParentVNode._children = []
-    console.log('diffChildren', renderResult)
     let oldVNode
     let refs = []// 如果存在多个ref怎么解决
-
+    console.log('diffChildren', renderResult)
     for (let i = 0; i < renderResult.length; i++) {
         let childVNode = renderResult[i]
         if (typeof childVNode === 'string' || typeof childVNode === 'number' || typeof childVNode === 'bigint') {
@@ -343,7 +344,6 @@ function setProperty(dom, name, value, oldValue) {
             name !== 'download' &&
             name in dom
         ) {
-            console.log('setProperty',name,value == null)
             try {
                 dom[name] = value == null ? '' : value;
                 return 

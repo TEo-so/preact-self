@@ -31,6 +31,9 @@ Component.prototype.setState = function (update, callback) {
     }   
 }
 
+
+
+
 Component.prototype.forceUpdate = function (callback) {
     if (this._vnode) {
         this._force = true
