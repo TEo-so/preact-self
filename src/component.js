@@ -32,8 +32,6 @@ Component.prototype.setState = function (update, callback) {
 }
 
 
-
-
 Component.prototype.forceUpdate = function (callback) {
     if (this._vnode) {
         this._force = true
@@ -49,11 +47,14 @@ export function enqueueRender(c) {
 }
 
 export function process() {
-    // 会根据_depth 去rerender , 确实应该从上而下
-    rerenderQueue.forEach( c=> {renderComponent(c)})
+    // 防止上一次的renderQueue 再执行
+    let queue = rerenderQueue
+    rerenderQueue = []
+    queue.forEach(c => { renderComponent(c) })
 }
 
 export function renderComponent(componnent) {
+    console.log('renderComponent',componnent)
     let vnode = componnent._vnode
     let parentDom = componnent._parentDom
     if (parentDom) {

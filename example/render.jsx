@@ -3,14 +3,12 @@ import React from "../src";
 // const element = react.createElement('div', { id: 'preact'}, 'preact')
 // const element = <div>text</div>
 
-class Children extends React.Component {
-    shouldComponentUpdate(nextProps, nextState) {
-        console.log('比较', nextProps.name, this.props.name)
-        if (nextProps.name == this.props.name) {
-            return false
-        }
-    }
-
+class Children extends React.PureComponent {
+    // shouldComponentUpdate(nextProps, nextState) {
+    //     if (nextProps.name === this.props.name) {
+    //         return false
+    //     }
+    // }
     render() {
         return (
             <div>
@@ -23,6 +21,19 @@ class Children extends React.Component {
     }
 }
 
+function ChildrenFC(props) {
+    return (
+        <div>
+            <p>
+                最后的函数组件
+            </p>
+            <p>{props.name}</p>
+        </div>
+    )
+
+}
+
+const MemoChildren = React.memo(ChildrenFC)
 
 class App extends React.Component {
     state = {
@@ -70,7 +81,6 @@ class App extends React.Component {
         this.setState({ ...this.state, value: "change-prop" })
     }
 
-
     render() {
         return (
             <div ref={this.ref1}>
@@ -82,7 +92,7 @@ class App extends React.Component {
                         return <li key={item}>{item}</li>
                     })
                 }
-                <Children ref={this.ref2} name={this.state.value} />
+                <MemoChildren ref={this.ref2} name={this.state.value} />
             </div>
         )
     }

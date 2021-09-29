@@ -1,91 +1,75 @@
 import React from "../src";
-import { Component } from "../src/component";
-import { useContext } from '../src/hooks'
+import { createContext } from '../src/createContext'
 
-// const Theme = React.createContext('light');
-// function ThemedButton(props) {
-//     return (
-//         <Theme.Consumer>
-//             {theme => {
-//                 return <button {...props} className={'btn ' + theme}>{theme}</button>;
-//             }}
-//         </Theme.Consumer>
-//     );
-// }
-// 
+const { Provider, Consumer } = createContext();
 
+class ThemeProvider extends React.Component {
+    state = {
+        value: this.props.value
+    };
 
+    onClick = () => {
+        this.setState(prev => ({
+            value:
+                prev.value === this.props.value ? this.props.next : this.props.value
+        }));
+    };
 
-const themes = {
-    light: {
-        name: 'light'
-    },
-    dark: {
-        name: 'dark'
-    }
-};
-
-
-const ThemeContext = React.createContext(themes.dark);
-// function ThemedButton() {
-//     const theme = useContext(ThemeContext);
-//     return (
-//         <button style={{ background: theme.background, color: theme.foreground }}>
-//             I am styled by theme context!
-//         </button>
-//     );
-// }
-
-class ThemedButton extends React.Component {
     render() {
-        console.log('子元素重渲染', ThemeContext)
-        let props = this.props;
         return (
-            <ThemeContext.Consumer>
-                {theme => {
-                    return <button
-                        {...props}
-                    >{theme.name}</button>;
-                }}
-            </ThemeContext.Consumer>
-
+            <div>
+                <button onClick={this.onClick}>Toggle</button>
+                <Provider value={this.state.value}>{this.props.children}</Provider>
+            </div>
         );
     }
 }
 
-function Toolbar(props) {
-    return (
-        <ThemedButton onClick={props.changeTheme}>
-            Change Theme
-        </ThemedButton>
-    );
-}
+class Child extends React.Component {
+    // 就算中间组件不更新，但是consumer还是会更新
+    shouldComponentUpdate() {
+        return false;
+    }
 
-class App extends Component {
-    state = {
-        theme: themes.dark
-    }
-    toggleTheme = () => {
-        this.setState(state => ({
-            theme:
-                state.theme === themes.dark
-                    ? themes.light
-                    : themes.dark,
-        }));
-    }
     render() {
         return (
             <>
-                <ThemeContext.Provider value={this.state.theme}>
-                    <Toolbar changeTheme={this.toggleTheme} />
-                    <div>{this.state.theme}</div>
-                </ThemeContext.Provider>
+                <p>(blocked update)</p>
+                {this.props.children}
             </>
         );
+    }
+}
 
+export default class ContextDemo extends React.Component {
+    render() {
+        return (
+            <ThemeProvider value="blue" next="red">
+                <Child>
+                    <Consumer>
+                        {data => (
+                            <div>
+                                <p>
+                                    current theme: <b>{data}</b>
+                                </p>
+                                <ThemeProvider value="black" next="white">
+                                    <Consumer>
+                                        {data => (
+                                            <p>
+                                                current sub theme: <b>{data}</b>
+                                            </p>
+                                        )}
+                                    </Consumer>
+                                </ThemeProvider>
+                            </div>
+                        )}
+                    </Consumer>
+                </Child>
+            </ThemeProvider>
+        );
     }
 }
 
 
 const root = document.querySelector('#root')
-React.render(<App />, root)
+React.render(<ContextDemo />, root)

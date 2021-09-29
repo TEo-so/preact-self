@@ -16,6 +16,7 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
         if (typeof nodeType === 'function') {
             const contextType = nodeType.contextType
             const componentContext = contextType?._defaultValue
+            const provider = contextType?._provider
             if (oldVNode?._component) {
                 component = newVNode._component = oldVNode._component
             } else {
@@ -34,6 +35,10 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
                 isNew = true
                 component._renderCallbacks = []
             }
+            if (provider) {
+                console.log('provider Component', component,provider)
+            }
+            if (provider) provider.sub(component);
             component.context = componentContext
             // 第一次没有_nextState,赋值
             // 之后更新，所以nextState就作为component上一次的state
@@ -84,7 +89,7 @@ export function diff(parentDom, newVNode, oldVNode, commitQueue) {
                     component.shouldComponentUpdate != null &&
                     component.shouldComponentUpdate(newProps, component._nextState) === false
                 ) {
-                    console.log('shouldComponent')
+                    // console.log('shouldComponent',component)
                     component.state = component._nextState
                     component.props = newProps
                     component._vnode = newVNode

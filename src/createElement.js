@@ -1,5 +1,6 @@
 import { diff, commitRoot } from "./render"
 import { shallowCompare } from "./utils"
+import { Component } from "./component"
 
 export function createElement(type, props, ...children) {
     const normalizeProps = { children: [] }
@@ -30,15 +31,16 @@ export function Fragment(props) {
     return props.children
 }
 
-export function memo(component, isEqual) {
-     if(!isEqual) isEqual = shallowCompare
-    // memo 只会对比props,所以还要测试state 
-    // state 更改还是会更改的
+// memo 适用于函数组件
+export function memo(FC, areEqual) {
+     if(!areEqual) areEqual = shallowCompare
+    // 只会比较props 但是如果是函数组件，拥有useState、useReducer、useContext，当有state和context的时候还是会触发改变
     function Memoized(props) {
+        // return true 就是要更新
         this.shouldComponentUpdate = function shouldUpdate(nextProps) {
-            return comparer(props,nextProps)
+            return areEqual(props,nextProps)
         }
-        return creatVNode(component,props)
+        return creatVNode(FC,props)
     }
     return Memoized
 }
